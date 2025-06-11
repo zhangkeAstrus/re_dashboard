@@ -43,6 +43,20 @@ elif page == "📝 Log New Site Visit":
         st.session_state.active_visit_id = None
 
     if not st.session_state.active_visit_id:
+        st.subheader("➡️ Select Existing or Log New Site Visit")
+
+        # Fetch all visits
+        visits_resp = requests.get(f"{API_BASE}/site_visits/")
+        visits = visits_resp.json() if visits_resp.status_code == 200 else []
+
+        visit_options = {f"{v['site_name']} on {v['visit_date']} (ID {v['id']})": v["id"] for v in visits}
+        selected_label = st.selectbox("Resume Existing Site Visit", ["-- Create New Site Visit --"] + list(visit_options.keys()))
+
+        if selected_label != "-- Create New Site Visit --":
+            st.session_state.active_visit_id = visit_options[selected_label]
+            st.success(f"Resumed Site Visit ID {st.session_state.active_visit_id}")
+            st.rerun()
+
         with st.form("visit_form"):
             site_name = st.text_input("Site Name")
             visit_date = st.date_input("Visit Date", value=date.today())
@@ -71,18 +85,18 @@ elif page == "📝 Log New Site Visit":
 
         st.subheader("➕ Add Observation")
 
-        # Fetch templates
-        template_resp = requests.get(f"{API_BASE}/templates/")
-        templates = template_resp.json() if template_resp.status_code == 200 else []
-        template_titles = [f"{t['id']}: {t['title']}" for t in templates]
-        selected_template = st.selectbox("Start from Template (optional)", ["None"] + template_titles)
+        # # Fetch templates
+        # template_resp = requests.get(f"{API_BASE}/templates/")
+        # templates = template_resp.json() if template_resp.status_code == 200 else []
+        # template_titles = [f"{t['id']}: {t['title']}" for t in templates]
+        # selected_template = st.selectbox("Start from Template (optional)", ["None"] + template_titles)
 
-        prefill = {}
-        if selected_template != "None":
-            selected_id = int(selected_template.split(":")[0])
-            prefill = next((t for t in templates if t["id"] == selected_id), {})
-        else:
-            selected_id = None
+        # prefill = {}
+        # if selected_template != "None":
+        #     selected_id = int(selected_template.split(":")[0])
+        #     prefill = next((t for t in templates if t["id"] == selected_id), {})
+        # else:
+        #     selected_id = None
 
         # Fetch hazard list
         hazard_resp = requests.get(f"{API_BASE}/hazards/")
@@ -99,10 +113,14 @@ elif page == "📝 Log New Site Visit":
         action_type_options = ["Corrective", "Positive"]
 
         with st.form("observation_form"):
-            title = st.text_input("Observation Title", value=prefill.get("title", ""))
-            description = st.text_area("Description", value=prefill.get("description", ""))
+            title = st.text_input("Observation Title")
+            description = st.text_area("Description")
             action_type = st.selectbox("Action Type", action_type_options, index=0)
-            recommendation = st.text_area("Recommendation", value=prefill.get("recommendation", ""))
+            recommendation = st.text_area("Recommendation")
+            # title = st.text_input("Observation Title", value=prefill.get("title", ""))
+            # description = st.text_area("Description", value=prefill.get("description", ""))
+            # action_type = st.selectbox("Action Type", action_type_options, index=0)
+            # recommendation = st.text_area("Recommendation", value=prefill.get("recommendation", ""))
             photo = st.file_uploader("Attach a photo (optional)", type=["png", "jpg", "jpeg"])
             obs_submit = st.form_submit_button("Submit Observation")
 
@@ -114,9 +132,9 @@ elif page == "📝 Log New Site Visit":
                 "description": description,
                 "action_type": action_type,
                 "hazard": final_hazard,
-                "recommendation": recommendation,
-                "template_id": str(selected_id) if selected_id else "",
-                "original_observation_id": "",
+                "recommendation": recommendation
+                # "template_id": str(selected_id) if selected_id else "",
+                # "original_observation_id": "",
             }
 
             files = {"photo": photo} if photo else None

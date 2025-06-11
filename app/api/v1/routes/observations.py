@@ -35,8 +35,8 @@ def create_observation(
         photo_path = file_location
     
     # Convert empty string to None and ensure integer type if applicable
-    template_id = int(template_id) if template_id and template_id.isdigit() else None
-    original_observation_id = int(original_observation_id) if original_observation_id and original_observation_id.isdigit() else None
+    # template_id = int(template_id) if template_id and template_id.isdigit() else None
+    # original_observation_id = int(original_observation_id) if original_observation_id and original_observation_id.isdigit() else None
 
 
     obs_data = Observation(

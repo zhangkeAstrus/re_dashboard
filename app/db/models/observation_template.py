@@ -11,4 +11,4 @@ class ObservationTemplate(Base):
     severity = Column(String)
     recommendation = Column(Text)
 
-    observations = relationship("Observation", back_populates="template")
+    # observations = relationship("Observation", back_populates="template")
