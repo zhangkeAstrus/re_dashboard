@@ -28,7 +28,7 @@ if page == "📊 Dashboard":
                     obs_list = [obs for obs in obs_resp.json() if obs["site_visit_id"] == visit["id"]]
                     if obs_list:
                         for obs in obs_list:
-                            st.markdown(f"- 🔸 **{obs['title']}** ({obs['severity']})")
+                            # st.markdown(f"- 🔸 **{obs['title']}** ({obs['severity']})")
                             st.caption(obs['description'])
                     else:
                         st.info("No observations recorded for this visit.")

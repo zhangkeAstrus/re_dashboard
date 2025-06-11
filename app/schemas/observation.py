@@ -7,8 +7,8 @@ class ObservationBase(BaseModel):
     recommendation: Optional[str] = None
     action_type: Optional[str] = None
     hazard: Optional[str] = None
-    template_id: Optional[int] = None
-    original_observation_id: Optional[int] = None
+    # template_id: Optional[int] = None
+    # original_observation_id: Optional[int] = None
 
 class ObservationCreate(ObservationBase):
     site_visit_id: int

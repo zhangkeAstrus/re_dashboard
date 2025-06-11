@@ -21,8 +21,8 @@ def create_observation(
     recommendation: Optional[str] = Form(None),
     action_type: Optional[str] = Form(None),
     hazard: Optional[str] = Form(None),
-    template_id: Optional[str] = Form(None),
-    original_observation_id: Optional[str] = Form(None),
+    # template_id: Optional[str] = Form(None),
+    # original_observation_id: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
 ):
@@ -46,8 +46,8 @@ def create_observation(
         recommendation=recommendation,
         action_type=action_type,
         hazard=hazard,
-        template_id=template_id,
-        original_observation_id=original_observation_id,
+        # template_id=template_id,
+        # original_observation_id=original_observation_id,
         photo_path=photo_path,
     )
     db.add(obs_data)

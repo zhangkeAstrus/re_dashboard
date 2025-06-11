@@ -9,7 +9,7 @@ class Observation(Base):
     site_visit_id = Column(Integer, ForeignKey("site_visits.id"), nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=False)
-    severity = Column(String)
+    # severity = Column(String)
     recommendation = Column(Text)
     hazard = Column(String, nullable=True)
     photo_path = Column(String, nullable = True)
@@ -17,9 +17,9 @@ class Observation(Base):
 
 
     # Optional references to original or template
-    original_observation_id = Column(Integer, ForeignKey("observations.id"), nullable=True)
-    template_id = Column(Integer, ForeignKey("observation_templates.id"), nullable=True)
+    # original_observation_id = Column(Integer, ForeignKey("observations.id"), nullable=True)
+    # template_id = Column(Integer, ForeignKey("observation_templates.id"), nullable=True)
 
     site_visit = relationship("SiteVisit", back_populates="observations")
-    original_observation = relationship("Observation", remote_side=[id])
-    template = relationship("ObservationTemplate", back_populates="observations")
+    # original_observation = relationship("Observation", remote_side=[id])
+    # template = relationship("ObservationTemplate", back_populates="observations")
