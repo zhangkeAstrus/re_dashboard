@@ -3,6 +3,25 @@ import requests
 from datetime import date
 
 API_BASE = "http://localhost:8000/api/v1"
+
+from collections import defaultdict
+
+@st.cache_data(ttl=300)
+def get_site_visits():
+    resp = requests.get(f"{API_BASE}/site_visits/")
+    return resp.json() if resp.status_code == 200 else []
+
+@st.cache_data(ttl=300)
+def get_observations():
+    resp = requests.get(f"{API_BASE}/observations/")
+    return resp.json() if resp.status_code == 200 else []
+
+@st.cache_data(ttl=300)
+def get_hazards():
+    resp = requests.get(f"{API_BASE}/hazards/")
+    return resp.json() if resp.status_code == 200 else []
+
+
 st.set_page_config(page_title="RE Dashboard", layout="wide")
 
 # --- Sidebar Navigation ---
@@ -15,25 +34,26 @@ st.title("🏗️ Risk Engineering Dashboard")
 if page == "📊 Dashboard":
     st.header("📅 Past Site Visits")
 
-    visits_resp = requests.get(f"{API_BASE}/site_visits/")
-    if visits_resp.status_code == 200:
-        visits = visits_resp.json()
-        for visit in visits:
-            with st.expander(f"🔹 {visit['site_name']} — {visit['visit_date']} (ID: {visit['id']})"):
-                st.markdown(f"**Engineer ID:** {visit['engineer_id']}")
-                st.markdown(f"**Notes:** {visit.get('notes', 'No notes')}")
+    visits = get_site_visits()
+    observations = get_observations()
 
-                obs_resp = requests.get(f"{API_BASE}/observations/")
-                if obs_resp.status_code == 200:
-                    obs_list = [obs for obs in obs_resp.json() if obs["site_visit_id"] == visit["id"]]
-                    if obs_list:
-                        for obs in obs_list:
-                            # st.markdown(f"- 🔸 **{obs['title']}** ({obs['severity']})")
-                            st.caption(obs['description'])
-                    else:
-                        st.info("No observations recorded for this visit.")
-    else:
-        st.error("Failed to fetch site visits.")
+    # Create an index for observations by visit ID
+    obs_by_visit = defaultdict(list)
+    for obs in observations:
+        obs_by_visit[obs["site_visit_id"]].append(obs)
+
+    for visit in visits:
+        with st.expander(f"🔹 {visit['site_name']} — {visit['visit_date']} (ID: {visit['id']})"):
+            st.markdown(f"**Engineer ID:** {visit['engineer_id']}")
+            st.markdown(f"**Notes:** {visit.get('notes', 'No notes')}")
+
+            obs_list = obs_by_visit.get(visit["id"], [])
+            if obs_list:
+                for obs in obs_list:
+                    st.caption(obs['description'])
+            else:
+                st.info("No observations recorded for this visit.")
+
 
 # --- Log New Visit Page ---
 elif page == "📝 Log New Site Visit":
@@ -50,12 +70,15 @@ elif page == "📝 Log New Site Visit":
         visits = visits_resp.json() if visits_resp.status_code == 200 else []
 
         visit_options = {f"{v['site_name']} on {v['visit_date']} (ID {v['id']})": v["id"] for v in visits}
-        selected_label = st.selectbox("Resume Existing Site Visit", ["-- Create New Site Visit --"] + list(visit_options.keys()))
+        with st.form("resume_form"):
+            selected_label = st.selectbox("Resume Existing Site Visit", ["-- Create New Site Visit --"] + list(visit_options.keys()))
+            resume = st.form_submit_button("Resume")
 
-        if selected_label != "-- Create New Site Visit --":
+        if resume and selected_label != "-- Create New Site Visit --":
             st.session_state.active_visit_id = visit_options[selected_label]
             st.success(f"Resumed Site Visit ID {st.session_state.active_visit_id}")
             st.rerun()
+
 
         with st.form("visit_form"):
             site_name = st.text_input("Site Name")
@@ -99,8 +122,7 @@ elif page == "📝 Log New Site Visit":
         #     selected_id = None
 
         # Fetch hazard list
-        hazard_resp = requests.get(f"{API_BASE}/hazards/")
-        hazards = hazard_resp.json() if hazard_resp.status_code == 200 else []
+        hazards = get_hazards()
         hazard_names = [h["name"] for h in hazards]
         hazard_selection = st.selectbox("Hazard Category", hazard_names + ["Other"])
 
